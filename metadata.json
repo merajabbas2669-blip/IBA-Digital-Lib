@@ -1,0 +1,6 @@
+{
+  "name": "IBA Digital Library – Smart ILS Management System",
+  "description": "University library seat management platform for IBA Karachi managing 30 Individual Learning Spaces (ILS) with student booking and administrative oversight.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

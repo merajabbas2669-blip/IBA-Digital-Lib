@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Manrope", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Core Institutional & SaaS Palette */
+  --color-navy-950: #0A1329;
+  --color-navy-900: #101C3A;
+  --color-navy-800: #172554;
+  --color-navy-700: #1E326B;
+  --color-navy-600: #29438A;
+
+  --color-brand-700: #244AD4;
+  --color-brand-600: #315EF2;
+  --color-brand-500: #4B74F5;
+  --color-brand-100: #DCE6FF;
+  --color-brand-50: #EAF0FF;
+
+  --color-teal-700: #0F8B7C;
+  --color-teal-600: #159E8E;
+  --color-teal-500: #19B6A4;
+  --color-teal-400: #2DD4BF;
+
+  --color-canvas: #F5F7FC;
+  --color-ink-primary: #172033;
+  --color-ink-secondary: #68748A;
+
+  --color-accent-600: #315EF2;
+  --color-accent-500: #19B6A4;
+  --color-accent-400: #2DD4BF;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    color: #172033;
+    background-color: #F5F7FC;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: clip;
+  }
+
+  body {
+    overflow-x: clip;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  button, a, input, select, textarea {
+    outline-color: #315EF2;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid #315EF2;
+    outline-offset: 2px;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.surface-card {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(203, 213, 225, 0.78);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(16, 28, 58, 0.04), 0 8px 24px -12px rgba(16, 28, 58, 0.08);
+}
+
+.surface-card-interactive {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(16, 28, 58, 0.04), 0 6px 18px -10px rgba(16, 28, 58, 0.07);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.surface-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 28, 58, 0.06), 0 14px 28px -12px rgba(49, 94, 242, 0.14);
+}
+
+@keyframes qrScanBeam {
+  0% {
+    transform: translateY(0%);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(100%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0%);
+    opacity: 0.7;
+  }
+}
+
+.animate-qr-beam {
+  animation: qrScanBeam 2.6s ease-in-out infinite;
+}
+
+@keyframes viewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-view-enter {
+  animation: viewEnter 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-toast-in {
+  animation: toastIn 190ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes sheetUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-sheet-up {
+  animation: sheetUp 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Subtle polished scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(104, 116, 138, 0.28);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(104, 116, 138, 0.48);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
