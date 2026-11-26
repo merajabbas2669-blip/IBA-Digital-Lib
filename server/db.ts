@@ -1,6 +1,105 @@
-import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
+
+type SQLParam = null | number | bigint | string | NodeJS.ArrayBufferView;
+type SQLParams = SQLParam | Record<string, SQLParam>;
+
+/** Statement surface used by the server; rows are returned as `unknown` and cast by callers. */
+export interface CompatStatement {
+  run(...params: SQLParams[]): { changes: number; lastInsertRowid: number | bigint };
+  get(...params: SQLParams[]): unknown;
+  all(...params: SQLParams[]): unknown[];
+}
+
+type TransactionMode = 'DEFERRED' | 'IMMEDIATE' | 'EXCLUSIVE';
+
+export interface CompatTransaction<Args extends unknown[], Result> {
+  (...args: Args): Result;
+  deferred: (...args: Args) => Result;
+  immediate: (...args: Args) => Result;
+  exclusive: (...args: Args) => Result;
+}
+
+/**
+ * Thin compatibility layer over Node's built-in SQLite driver (`node:sqlite`).
+ * It provides the subset of the better-sqlite3 API used by this server
+ * (`pragma`, `transaction` with `.immediate`, loosely-typed statements) without
+ * requiring a native addon to be compiled at install time.
+ */
+class Database {
+  private readonly connection: DatabaseSync;
+  private transactionDepth = 0;
+  private savepointCounter = 0;
+
+  constructor(filename: string) {
+    this.connection = new DatabaseSync(filename);
+  }
+
+  exec(sql: string): void {
+    this.connection.exec(sql);
+  }
+
+  prepare(sql: string): CompatStatement {
+    return this.connection.prepare(sql) as unknown as CompatStatement;
+  }
+
+  pragma(statement: string): void {
+    this.exec(`PRAGMA ${statement}`);
+  }
+
+  /**
+   * Wraps `fn` in a transaction. Nested calls use savepoints so inner failures
+   * roll back only their own work, matching better-sqlite3 semantics.
+   */
+  transaction<Args extends unknown[], Result>(
+    fn: (...args: Args) => Result
+  ): CompatTransaction<Args, Result> {
+    const run =
+      (mode: TransactionMode) =>
+      (...args: Args): Result => {
+        if (this.transactionDepth > 0) {
+          const name = `ils_sp_${++this.savepointCounter}`;
+          this.exec(`SAVEPOINT ${name}`);
+          this.transactionDepth += 1;
+          try {
+            const result = fn(...args);
+            this.exec(`RELEASE ${name}`);
+            return result;
+          } catch (err) {
+            this.exec(`ROLLBACK TO ${name}`);
+            this.exec(`RELEASE ${name}`);
+            throw err;
+          } finally {
+            this.transactionDepth -= 1;
+          }
+        }
+
+        this.exec(`BEGIN ${mode}`);
+        this.transactionDepth = 1;
+        try {
+          const result = fn(...args);
+          this.exec('COMMIT');
+          return result;
+        } catch (err) {
+          try {
+            this.exec('ROLLBACK');
+          } catch {
+            // SQLite may already have rolled back automatically.
+          }
+          throw err;
+        } finally {
+          this.transactionDepth = 0;
+        }
+      };
+
+    const tx = run('DEFERRED') as CompatTransaction<Args, Result>;
+    tx.deferred = run('DEFERRED');
+    tx.immediate = run('IMMEDIATE');
+    tx.exclusive = run('EXCLUSIVE');
+    return tx;
+  }
+}
 
 const dataDir = path.resolve(process.cwd(), 'data');
 if (!fs.existsSync(dataDir)) {
